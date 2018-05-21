@@ -29,6 +29,9 @@ data_location_catalog = '/home/ula/Dokumenty/Hackathon/obrazy'
 #name of output file. The file is created in current location
 output_filename = 'analytics.txt'
 
+#min size of streak to inspect
+MIN_STREAK_AREA = 100
+
 '''
 end of constants
 '''
@@ -125,9 +128,15 @@ The function
 def find_and_classify_events(catalog, output_filename):
     no_events = []
     events = []
-    #files = os.listdir(catalog)
-    streak_length_array = [] #dlugosci smug
-    fileCount = {}
+    #tabela dlugosci smug
+    streak_length_array = [] 
+
+    #słownik, w ktorym kluczem jest nazwa oryginalnego pliku, a wartością
+    #tabela, gdzie umieszczone są:
+    #pod indeksem 0 - liczba wykrytych regionów
+    #pod indeksem 1 - liczba regionów statystycznie odbiegających od wykrytych rozmiarów w dół
+    #pod indeksem 2 - liczba regionów statystycznie odbiegających od wykrytych rozmiarów w górę
+    file_stats_dict = {}
     numbFile = {}
 
     with open(output_filename, 'w') as output:
@@ -150,14 +159,14 @@ def find_and_classify_events(catalog, output_filename):
             counter = 0 #ile znalazł rozbłysków alfa
             for region in regionprops(label_image):
                 # take regions with large enough areas
-                if region.area >= 100:
+                if region.area >= MIN_STREAK_AREA:
                     l = region.major_axis_length
                     streak_length_array.append(l)
 
                     counter+=1
                     numbFile[l] = filename
                     draw_brightness_profile(image, region, filename.replace('.png', ''), counter)
-            fileCount[filename] = [counter, 0, 0]#ile znalazlo, ile wyrzuciło po 3 sigma przez długość        
+            file_stats_dict[filename] = [counter, 0, 0]#ile znalazlo, ile wyrzuciło po 3 sigma przez długość        
             #print("OK")
             if counter > 0:
                 events += [filename]
@@ -170,15 +179,15 @@ def find_and_classify_events(catalog, output_filename):
         outlier_threshold = 3*np.std(streak_length_array) + lengths_mean
 
         for le in streak_length_array:
-            if le < (my_mean / 2):
-                fileCount[numbFile[le]][1] += 1
-            elif le > (my_mean + threeSigma):
-                fileCount[numbFile[le]][2] += 1
+            if le < (lengths_mean / 2):
+                file_stats_dict[numbFile[le]][1] += 1
+            elif le > (outlier_threshold):
+                file_stats_dict[numbFile[le]][2] += 1
 
-        #print (fileCount)
-        for f in fileCount:
-            #print (fileCount[f])
-            output.write(f + " " + str(fileCount[f][0]) + " " + str(fileCount[f][1]) + " " + str(fileCount[f][2])+'\n')
+        #print (file_stats_dict)
+        for f in file_stats_dict:
+            #print (file_stats_dict[f])
+            output.write(f + " " + str(file_stats_dict[f][0]) + " " + str(file_stats_dict[f][1]) + " " + str(file_stats_dict[f][2])+'\n')
             #lenlength.mean() + 3 * length.std()
     return events, no_events           
 
