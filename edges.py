@@ -128,10 +128,10 @@ def draw_brightness_profile(image, region, filename, index):
    The function finds region containing streaks for imgage
 
    Arguments:
-   img-filename - string containing filename to inspect
+     img-filename - string containing filename to inspect
 
    Returns:
-   list of RegionProperties objects 
+     list of RegionProperties objects 
 '''
 def find_regions_in_file(img_filename):
   image = io.imread(img_filename)
@@ -145,6 +145,29 @@ def find_regions_in_file(img_filename):
   # label image regions
   labelled_regions = label(cleared)
   return regionprops(labelled_regions)
+
+
+'''
+  The function fills up the data about rejected outlier regions in file_stats_dict
+
+  Arguments:
+    streak_length_array - array of streak lengths
+    file_stats_dict - dict storing numbers of regions found in each category
+    filename_for_strk_length - dict with filenames as values for streak length key
+
+  Returns:
+    void
+'''
+def sort_event_outliers(streak_length_array, file_stats_dict, filename_for_strk_length):
+  lengths_mean = np.mean(streak_length_array)
+  outlier_threshold = 3*np.std(streak_length_array) + lengths_mean
+
+  for le in streak_length_array:
+    if le < (lengths_mean / 2):
+      file_stats_dict[filename_for_strk_length[le]][1] += 1
+    elif le > (outlier_threshold):
+      file_stats_dict[filename_for_strk_length[le]][2] += 1
+  #sprawdzić, czy nie trzeba zrobić returna file_stats_dict
 
 '''
 The function 
@@ -188,23 +211,13 @@ def find_and_classify_events(catalog, output_filename):
             else:
                 no_events += [filename]
 
-        #numpyLength = np.array(streak_length_array)
-        
-        lengths_mean = np.mean(streak_length_array)
-        outlier_threshold = 3*np.std(streak_length_array) + lengths_mean
+        sort_event_outliers(streak_length_array, file_stats_dict, filename_for_strk_length)
 
-        for le in streak_length_array:
-            if le < (lengths_mean / 2):
-                file_stats_dict[filename_for_strk_length[le]][1] += 1
-            elif le > (outlier_threshold):
-                file_stats_dict[filename_for_strk_length[le]][2] += 1
-
-        #print (file_stats_dict)
         for f in file_stats_dict:
             output.write(f + " " + str(file_stats_dict[f][0]) + " " + str(file_stats_dict[f][1]) + " " + str(file_stats_dict[f][2])+'\n')
     return events, no_events           
 
-events, no_events = find_and_classify_events(data_location_catalog,output_filename)
+events, no_events = find_and_classify_events(data_location_catalog, output_filename)
 
 sort_files(no_events, 'no_events/')
 
