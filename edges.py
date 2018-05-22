@@ -32,6 +32,9 @@ output_filename = 'analytics.txt'
 #min size of streak to inspect
 MIN_STREAK_AREA = 100
 
+#name of catalog to store brightness profiles
+PROFILES_DIRECTORY = '/brightness_profile/'
+
 '''
 end of constants
 '''
@@ -107,7 +110,7 @@ def draw_brightness_profile(image, region, filename, index):
     newimg = cut_out_strk(image, region)
     profile = np.sum(newimg, axis=0)
     
-    folder_path = os.sep + data_location_catalog + '/light_profile/' + filename
+    folder_path = os.sep + data_location_catalog + PROFILES_DIRECTORY + filename
 
     try:
         os.mkdir(folder_path)
@@ -128,16 +131,17 @@ The function
 def find_and_classify_events(catalog, output_filename):
     no_events = []
     events = []
-    #tabela dlugosci smug
+    #array storing streak lengths
     streak_length_array = [] 
 
-    #słownik, w ktorym kluczem jest nazwa oryginalnego pliku, a wartością
-    #tabela, gdzie umieszczone są:
-    #pod indeksem 0 - liczba wykrytych regionów
-    #pod indeksem 1 - liczba regionów statystycznie odbiegających od wykrytych rozmiarów w dół
-    #pod indeksem 2 - liczba regionów statystycznie odbiegających od wykrytych rozmiarów w górę
+    #dict where key - original filename, value - array, where the following numbers are stored:
+    #at index 0 - total identified regions
+    #at index 1 - total of statistically too short streaks
+    #at index 2 - total of statistically too long streaks
     file_stats_dict = {}
-    numbFile = {}
+    
+    #dict where key - length of streak, value - name of file containing streak of such length
+    filename_for_strk_length = {}
 
     with open(output_filename, 'w') as output:
         for img_filename in glob.glob(catalog+'*.png'):
@@ -162,12 +166,11 @@ def find_and_classify_events(catalog, output_filename):
                 if region.area >= MIN_STREAK_AREA:
                     l = region.major_axis_length
                     streak_length_array.append(l)
-
-                    counter+=1
-                    numbFile[l] = filename
+                    counter += 1
+                    filename_for_strk_length[l] = filename
                     draw_brightness_profile(image, region, filename.replace('.png', ''), counter)
-            file_stats_dict[filename] = [counter, 0, 0]#ile znalazlo, ile wyrzuciło po 3 sigma przez długość        
-            #print("OK")
+            file_stats_dict[filename] = [counter, 0, 0]        
+            
             if counter > 0:
                 events += [filename]
             else:
@@ -180,15 +183,13 @@ def find_and_classify_events(catalog, output_filename):
 
         for le in streak_length_array:
             if le < (lengths_mean / 2):
-                file_stats_dict[numbFile[le]][1] += 1
+                file_stats_dict[filename_for_strk_length[le]][1] += 1
             elif le > (outlier_threshold):
-                file_stats_dict[numbFile[le]][2] += 1
+                file_stats_dict[filename_for_strk_length[le]][2] += 1
 
         #print (file_stats_dict)
         for f in file_stats_dict:
-            #print (file_stats_dict[f])
             output.write(f + " " + str(file_stats_dict[f][0]) + " " + str(file_stats_dict[f][1]) + " " + str(file_stats_dict[f][2])+'\n')
-            #lenlength.mean() + 3 * length.std()
     return events, no_events           
 
 events, no_events = find_and_classify_events(data_location_catalog,output_filename)
