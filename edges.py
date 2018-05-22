@@ -124,6 +124,27 @@ def draw_brightness_profile(image, region, filename, index):
     return
 
 
+'''
+   The function finds region containing streaks for imgage
+
+   Arguments:
+   img-filename - string containing filename to inspect
+
+   Returns:
+   list of RegionProperties objects 
+'''
+def find_regions_in_file(img_filename):
+  image = io.imread(img_filename)
+  # apply threshold
+  thresh = threshold_otsu(image)
+  bw = closing(image > thresh/5, square(3))
+
+  # remove artifacts connected to image border
+  cleared = clear_border(bw)
+
+  # label image regions
+  labelled_regions = label(cleared)
+  return regionprops(labelled_regions)
 
 '''
 The function 
@@ -145,30 +166,21 @@ def find_and_classify_events(catalog, output_filename):
 
     with open(output_filename, 'w') as output:
         for img_filename in glob.glob(catalog+'*.png'):
-            tst_img_path = file
-            image = io.imread(tst_img_path)
-                        
-            filename = os.path.basename(img_filename)
-            # apply threshold
-            thresh = threshold_otsu(image)
-            bw = closing(image > thresh/5, square(3))
+                                  
+            filename = os.path.basename(img_filename)     
+            regions_found = find_regions_in_file()
 
-            # remove artifacts connected to image border
-            cleared = clear_border(bw)
+            counter = 0 
+            for region in regions_found:
 
-            # label image regions
-            label_image = label(cleared)
-            image_label_overlay = label2rgb(label_image, image=image)
-
-            counter = 0 #ile znalazł rozbłysków alfa
-            for region in regionprops(label_image):
-                # take regions with large enough areas
+                #only take regions with large enough areas
                 if region.area >= MIN_STREAK_AREA:
                     l = region.major_axis_length
                     streak_length_array.append(l)
                     counter += 1
                     filename_for_strk_length[l] = filename
                     draw_brightness_profile(image, region, filename.replace('.png', ''), counter)
+
             file_stats_dict[filename] = [counter, 0, 0]        
             
             if counter > 0:
