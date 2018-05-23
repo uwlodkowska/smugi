@@ -81,8 +81,7 @@ newimg - image of the rotated streak
 '''
 def cut_out_strk(image, region):
     minr, minc, maxr, maxc = region.bbox
-    rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
-                                  fill=False, edgecolor='red', linewidth=2)
+
     newimg = image[minr:maxr, minc:maxc]
     newimg = transform.rotate(newimg, -region.orientation*180./math.pi, resize=True)
 
@@ -123,6 +122,40 @@ def draw_brightness_profile(image, region, filename, index):
 
     return
 
+
+'''
+The function creates image for each streak, containing the angle of rotation
+  
+Arguments:
+  image - the original image
+  region - one of regions containing streaks in this image, identified by skimage
+  filename - the name of the original image file
+  index - ordinal number of the region, indicates how many regions have been already processed for 
+  the original image
+Returns:
+  void
+'''
+def draw_rotation_angle(image, region, filename, index):
+
+    minr, minc, maxr, maxc = region.bbox
+    folder_path = os.sep + data_location_catalog + PROFILES_DIRECTORY + filename
+
+    try:
+        os.mkdir(folder_path)
+    except:
+        pass
+
+    newimg = image[minr:maxr, minc:maxc]
+
+    fig, ax = plt.subplots()
+    ax.imshow(newimg)
+
+    angle = mpatches.Arc((0, 0), (maxc - minc)/4, (maxr - minr)/4, 0, 0, region.orientation*180./math.pi, edgecolor='red', linewidth=2)
+    ax.add_patch(angle)
+
+    ax.set_axis_off()
+    plt.savefig(folder_path + "/reference_" + str(index))
+    plt.clf()
 
 '''
    The function finds region containing streaks for imgage
@@ -203,6 +236,7 @@ def find_and_classify_events(catalog, output_filename):
                     counter += 1
                     filename_for_strk_length[l] = filename
                     draw_brightness_profile(image, region, filename.replace('.png', ''), counter)
+                    draw_rotation_angle(image, region, filename.replace('.png', ''), counter)
 
             file_stats_dict[filename] = [counter, 0, 0]        
             
