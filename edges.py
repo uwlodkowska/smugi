@@ -24,7 +24,7 @@ import os, glob
 constants and default values
 '''
 #path to catalog containing data to process
-data_location_catalog = '/home/ula/Dokumenty/Hackathon/obrazy'
+data_location_catalog = '/home/ula/hackathon/obrazy'
 
 #name of output file. The file is created in current location
 output_filename = 'analytics.txt'
@@ -41,6 +41,7 @@ end of constants
 
 data_location_catalog = data_location_catalog.strip()
 data_location_catalog = data_location_catalog.strip(os.sep)
+data_location_catalog = os.sep + data_location_catalog
 
 '''
 This function transfers list of files from catalog containing data to new location.
@@ -221,14 +222,12 @@ def find_and_classify_events(catalog, output_filename):
     filename_for_strk_length = {}
 
     with open(output_filename, 'w') as output:
-        for img_filename in glob.glob(catalog+'*.png'):
+        for img_filename in glob.glob(catalog+'/*.png'):
                                   
             filename = os.path.basename(img_filename)     
-            regions_found = find_regions_in_file()
-
+            regions_found = find_regions_in_file(filename)
             counter = 0 
             for region in regions_found:
-
                 #only take regions with large enough areas
                 if region.area >= MIN_STREAK_AREA:
                     l = region.major_axis_length
