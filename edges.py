@@ -110,13 +110,19 @@ def draw_brightness_profile(image, region, filename, index):
     newimg = cut_out_strk(image, region)
     profile = np.sum(newimg, axis=0)
     
-    folder_path = os.sep + data_location_catalog + PROFILES_DIRECTORY + filename
+    folder_path = data_location_catalog + PROFILES_DIRECTORY + filename
 
+    try:
+        os.mkdir(data_location_catalog + PROFILES_DIRECTORY)
+    except:
+        pass
+
+   
     try:
         os.mkdir(folder_path)
     except:
         pass
-
+    
     plt.plot(profile)
     plt.savefig(folder_path + "/profile_" + str(index))
     plt.clf()
@@ -139,8 +145,14 @@ Returns:
 def draw_rotation_angle(image, region, filename, index):
 
     minr, minc, maxr, maxc = region.bbox
-    folder_path = os.sep + data_location_catalog + PROFILES_DIRECTORY + filename
+    folder_path = data_location_catalog + PROFILES_DIRECTORY + filename
 
+    try:
+        os.mkdir(data_location_catalog + PROFILES_DIRECTORY)
+    except:
+        pass
+
+   
     try:
         os.mkdir(folder_path)
     except:
@@ -224,8 +236,9 @@ def find_and_classify_events(catalog, output_filename):
     with open(output_filename, 'w') as output:
         for img_filename in glob.glob(catalog+'/*.png'):
                                   
+            image = io.imread(img_filename)
             filename = os.path.basename(img_filename)     
-            regions_found = find_regions_in_file(filename)
+            regions_found = find_regions_in_file(img_filename)
             counter = 0 
             for region in regions_found:
                 #only take regions with large enough areas
