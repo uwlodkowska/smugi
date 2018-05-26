@@ -164,7 +164,17 @@ def draw_rotation_angle(image, region, filename, index):
     ax.imshow(newimg)
 
     angle = mpatches.Arc((0, 0), (maxc - minc)/4, (maxr - minr)/4, 0, 0, region.orientation*180./math.pi, edgecolor='red', linewidth=2)
-    ax.add_patch(angle)
+    #ax.add_patch(angle)
+    
+    direction = np.sign(region.orientation)
+    if (direction == 1):
+        ystart = maxr-minr
+    else:
+        ystart = 0
+
+    
+    con = mpatches.Arrow(0, ystart, (maxc-minc), direction*(minr-maxr), edgecolor='red', linewidth=2)
+    ax.add_artist(con)
 
     ax.set_axis_off()
     plt.savefig(folder_path + "/reference_" + str(index))
