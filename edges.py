@@ -70,6 +70,32 @@ def sort_files(files_list, folder_name):
     return
 
 '''
+The function returns boundary points of image region after extending the region in every direction by 
+fraction passed in the padding argument
+
+Arguments:
+    region - the original region surrounding streak
+    padding - float expressing the fraction by which the region is to be extended in each direction
+
+Returns:
+    minr, minc, maxr, maxc - integers representing boundary points of extended rectangle surrounding streak
+
+'''
+def extend_region_around_streak(region, padding):
+    minr, minc, maxr, maxc =  region.bbox
+
+
+    rmargin = int(padding*(maxr - minr))
+    cmargin = int(padding*(maxc - minc))
+
+
+    minr -= rmargin
+    maxr += rmargin
+    minc -= cmargin
+    maxc += cmargin
+
+    return minr, minc, maxr, maxc
+'''
 The function takes identified region containing a streak, rotates it so the longer identified axis 
 is horizontal and cuts out only the streak
 
@@ -81,11 +107,11 @@ Returns:
 newimg - image of the rotated streak 
 '''
 def cut_out_strk(image, region):
-    minr, minc, maxr, maxc = region.bbox
+    minr, minc, maxr, maxc = extend_region_around_streak(region, 0.1)
 
     newimg = image[minr:maxr, minc:maxc]
     newimg = transform.rotate(newimg, -region.orientation*180./math.pi, resize=True)
-
+    
     img_orig_ht = len(newimg)
     strk_ht = region.minor_axis_length
 
@@ -144,7 +170,8 @@ Returns:
 '''
 def draw_rotation_angle(image, region, filename, index):
 
-    minr, minc, maxr, maxc = region.bbox
+    minr, minc, maxr, maxc = extend_region_around_streak(region, 0.1)
+    
     folder_path = data_location_catalog + PROFILES_DIRECTORY + filename
 
     try:
