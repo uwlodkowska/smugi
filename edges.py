@@ -163,8 +163,6 @@ def draw_rotation_angle(image, region, filename, index):
     fig, ax = plt.subplots()
     ax.imshow(newimg)
 
-    angle = mpatches.Arc((0, 0), (maxc - minc)/4, (maxr - minr)/4, 0, 0, region.orientation*180./math.pi, edgecolor='red', linewidth=2)
-    #ax.add_patch(angle)
     
     direction = np.sign(region.orientation)
     if (direction == 1):
