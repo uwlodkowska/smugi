@@ -174,17 +174,6 @@ def draw_rotation_angle(image, region, filename, index):
     
     folder_path = data_location_catalog + PROFILES_DIRECTORY + filename
 
-    try:
-        os.mkdir(data_location_catalog + PROFILES_DIRECTORY)
-    except:
-        pass
-
-   
-    try:
-        os.mkdir(folder_path)
-    except:
-        pass
-
     newimg = image[minr:maxr, minc:maxc]
 
     fig, ax = plt.subplots()
@@ -248,7 +237,46 @@ def sort_event_outliers(streak_length_array, file_stats_dict, filename_for_strk_
       file_stats_dict[filename_for_strk_length[le]][1] += 1
     elif le > (outlier_threshold):
       file_stats_dict[filename_for_strk_length[le]][2] += 1
-  #sprawdzić, czy nie trzeba zrobić returna file_stats_dict
+
+
+'''
+
+The function does all region processing for single image from catalog: it iterates over each found region containing streak
+and updates global statistics. It also adds the filename to correct array, so it can be processed according to whether there
+have been any events in this file
+
+Arguments:
+  img_filename - the name of image filename
+  streak_length_array - array of streak lengths that have been found
+  filename_for_strk_length - dict of filenames for streak lengths
+  file_stats_dict - doct of statistics of regions for each filename
+  events - array of filenames with identified events
+  no_events - array of filenames, for which no events have been found
+Returns:
+  void
+
+'''
+def process_regions_for_file(img_filename, streak_length_array, filename_for_strk_length, file_stats_dict, events, no_events):
+  image = io.imread(img_filename)
+  filename = os.path.basename(img_filename)     
+  regions_found = find_regions_in_file(img_filename)
+  counter = 0 
+  for region in regions_found:
+    #only take regions with large enough areas
+    if region.area >= MIN_STREAK_AREA:
+      l = region.major_axis_length
+      streak_length_array.append(l)
+      counter += 1
+      filename_for_strk_length[l] = filename
+      draw_brightness_profile(image, region, filename.replace('.png', ''), counter)
+      draw_rotation_angle(image, region, filename.replace('.png', ''), counter)
+
+      file_stats_dict[filename] = [counter, 0, 0]        
+            
+      if counter > 0:
+        events += [filename]
+      else:
+        no_events += [filename]
 
 '''
 The function 
@@ -265,37 +293,17 @@ def find_and_classify_events(catalog, output_filename):
     #at index 2 - total of statistically too long streaks
     file_stats_dict = {}
     
-    #dict where key - length of streak, value - name of file containing streak of such length
+    #dict where key - length of streak, value - names of file containing streak of such length
     filename_for_strk_length = {}
 
     with open(output_filename, 'w') as output:
         for img_filename in glob.glob(catalog+'/*.png'):
-                                  
-            image = io.imread(img_filename)
-            filename = os.path.basename(img_filename)     
-            regions_found = find_regions_in_file(img_filename)
-            counter = 0 
-            for region in regions_found:
-                #only take regions with large enough areas
-                if region.area >= MIN_STREAK_AREA:
-                    l = region.major_axis_length
-                    streak_length_array.append(l)
-                    counter += 1
-                    filename_for_strk_length[l] = filename
-                    draw_brightness_profile(image, region, filename.replace('.png', ''), counter)
-                    draw_rotation_angle(image, region, filename.replace('.png', ''), counter)
-
-            file_stats_dict[filename] = [counter, 0, 0]        
-            
-            if counter > 0:
-                events += [filename]
-            else:
-                no_events += [filename]
-
+           process_regions_for_file(img_filename, streak_length_array, filename_for_strk_length, file_stats_dict, events, no_events)                       
         sort_event_outliers(streak_length_array, file_stats_dict, filename_for_strk_length)
 
         for f in file_stats_dict:
             output.write(f + " " + str(file_stats_dict[f][0]) + " " + str(file_stats_dict[f][1]) + " " + str(file_stats_dict[f][2])+'\n')
+    
     return events, no_events           
 
 events, no_events = find_and_classify_events(data_location_catalog, output_filename)
