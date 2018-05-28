@@ -279,7 +279,15 @@ def process_regions_for_file(img_filename, streak_length_array, filename_for_str
         no_events += [filename]
 
 '''
-The function 
+The function iterates over all image files in catalog, identifies streaks and prepares analytics file containing info about event statistics for each file
+
+Arguments:
+  catalog - directory to catalog containing images
+  output_filename - name of file where the statistics should be saved 
+
+Returns:
+  events - list of filenames where streaks have been found
+  no_events - list of filenames with no streaks
 '''
 def find_and_classify_events(catalog, output_filename):
     no_events = []
