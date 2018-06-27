@@ -99,6 +99,7 @@ def draw_brightness_profile(image, region, filename, index):
     except:
         pass
     
+    plt.xlabel('Odległość od początku smugi [px]')
     plt.plot(profile)
     plt.savefig(folder_path + "/profile_" + str(index))
     plt.clf()
