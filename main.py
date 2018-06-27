@@ -43,6 +43,8 @@ def find_and_classify_events(catalog, output_filename):
            process_regions_for_file(img_filename, streak_length_array, filename_for_strk_length, 
 file_stats_dict, events, no_events)                       
         sort_event_outliers(streak_length_array, file_stats_dict, filename_for_strk_length)
+	
+        output.write("filename | total streaks | short streaks | long streaks\n")
 
         for f in file_stats_dict:
             output.write(f + " " + str(file_stats_dict[f][0]) + " " + str(file_stats_dict[f][1]) + " " + str(file_stats_dict[f][2])+'\n')
