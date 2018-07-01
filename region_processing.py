@@ -131,7 +131,6 @@ def draw_rotation_angle(image, region, filename, index):
     fig, ax = plt.subplots()
     ax.imshow(newimg)
 
-    
     direction = np.sign(region.orientation)
     if (direction == 1):
         ystart = maxr-minr
