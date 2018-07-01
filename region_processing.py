@@ -12,6 +12,7 @@ from skimage import transform
 #importing packages for standard mathematical and data operations
 import math
 import numpy as np
+import os
 
 #constants
 from global_variables import DATA_LOCATION_CATALOG
