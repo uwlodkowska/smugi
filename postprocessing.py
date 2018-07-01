@@ -26,13 +26,13 @@ def sort_files(files_list, folder_name):
     folder_name = folder_name.strip()
     folder_name = folder_name.strip(os.sep)
 
-    folder_path = os.sep + DATA_LOCATION_CATALOG + os.sep + folder_name
+    folder_path = DATA_LOCATION_CATALOG + os.sep + folder_name
     try:
         os.mkdir(folder_path)
     except:
         pass
     for i in files_list:
-        old_path = os.sep + DATA_LOCATION_CATALOG + os.sep + i
+        old_path = DATA_LOCATION_CATALOG + os.sep + i
         new_path = folder_path + os.sep + i
         os.rename(old_path, new_path)
     return

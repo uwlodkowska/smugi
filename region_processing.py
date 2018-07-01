@@ -17,6 +17,8 @@ import os
 #constants
 from global_variables import DATA_LOCATION_CATALOG
 
+import os
+
 #name of catalog to store brightness profiles
 PROFILES_DIRECTORY = '/brightness_profile/'
 

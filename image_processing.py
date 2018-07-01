@@ -84,7 +84,7 @@ def process_regions_for_file(img_filename, streak_length_array, filename_for_str
 
       file_stats_dict[filename] = [counter, 0, 0]        
             
-      if counter > 0:
-        events += [filename]
-      else:
-        no_events += [filename]
+  if counter > 0:
+    events += [filename]
+  else:
+    no_events += [filename]
