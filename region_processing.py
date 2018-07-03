@@ -47,7 +47,7 @@ def extend_region_around_streak(region, padding):
     minc -= cmargin
     maxc += cmargin
 
-    return minr, minc, maxr, maxc
+    return np.max([minr, 0]), np.max([minc, 0]), maxr, maxc
 '''
 The function takes identified region containing a streak, rotates it so the longer identified axis 
 is horizontal and cuts out only the streak
