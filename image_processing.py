@@ -2,13 +2,14 @@
 # Module aggregating functions responsible for identifying and processing region for each image
 #
 
+import numpy as np
 
 #importing packages used in image processing 
 from skimage import data
 from skimage.filters import threshold_otsu
 from skimage.segmentation import clear_border
 from skimage.measure import label, regionprops
-from skimage.morphology import closing, square
+from skimage.morphology import closing, square, opening
 from skimage.color import label2rgb
 from skimage import data, io, filters, feature
 
@@ -39,8 +40,15 @@ MIN_STREAK_AREA = 100
 def find_regions_in_file(img_filename):
   image = io.imread(img_filename)
   # apply threshold
-  thresh = threshold_otsu(image)
-  bw = closing(image > thresh/5, square(3))
+  #thresh = threshold_otsu(image)
+
+  flat_image = np.ndarray.flatten(image)
+
+  sorted_flat = np.sort(np.unique(flat_image))
+
+  thresh = sorted_flat[-1]*0.085
+
+  bw = closing(image > thresh, square(3))
 
   # remove artifacts connected to image border
   cleared = clear_border(bw)
